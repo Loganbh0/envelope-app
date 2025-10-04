@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Envelope App</title>
+
+  <!-- Base styles -->
+  <link rel="stylesheet" href="main.css"/>
+
+  <!-- Bootstrap CSS & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet"/>
+</head>
+<body>
+
+  <main class="container my-5">
+
+    <!-- LOGIN -->
+    <section id="authSection" class="card shadow p-4 mx-auto" style="max-width: 420px;">
+      <h2 class="mb-3 text-center">Login</h2>
+      <input id="username" type="text" placeholder="Username" class="form-control mb-2"/>
+      <input id="password" type="password" placeholder="Password" class="form-control mb-3"/>
+      <button id="loginBtn" class="btn btn-success w-100">
+        <i class="bi bi-box-arrow-in-right"></i> Login
+      </button>
+    </section>
+
+    <!-- APP -->
+    <section id="appSection" class="d-none">
+      <!-- header: welcome + actions -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 id="welcomeText" class="mb-0"></h2>
+        <div class="d-flex gap-2">
+          <button id="logoutBtn" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-box-arrow-right"></i> Logout
+          </button>
+          <button id="deleteUserBtn" class="btn btn-outline-warning btn-sm">
+            <i class="bi bi-person-x"></i> Delete User
+          </button>
+        </div>
+      </div>
+
+      <!-- controls row -->
+      <div class="d-flex flex-column flex-md-row gap-2 mb-4">
+        <button id="showNewEnvelope" class="btn btn-primary">
+          <i class="bi bi-plus-circle"></i> New Envelope
+        </button>
+        <input type="file" id="fileInput" accept=".csv,.xlsx" class="form-control"/>
+      </div>
+
+      <!-- new envelope form -->
+      <div id="newEnvelopeForm" class="card shadow-sm p-3 mb-4 d-none">
+        <h4 class="mb-3">Create Envelope</h4>
+        <div class="row g-2">
+          <div class="col-md-4">
+            <input id="envTitle" type="text" placeholder="Title" class="form-control"/>
+          </div>
+          <div class="col-md-4">
+            <input id="envBalance" type="number" step="0.01" placeholder="Starting Balance" class="form-control"/>
+          </div>
+          <div class="col-md-4">
+            <input id="envTarget" type="number" step="0.01" placeholder="Target (optional)" class="form-control"/>
+          </div>
+        </div>
+        <div class="mt-3">
+          <button id="createEnvelopeBtn" class="btn btn-success">
+            <i class="bi bi-check2-circle"></i> Create
+          </button>
+          <button id="cancelEnvelopeBtn" class="btn btn-outline-secondary">Cancel</button>
+        </div>
+      </div>
+
+      <!-- envelopes -->
+      <div class="card shadow-sm p-3 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h4 class="mb-0">Your Envelopes</h4>
+          <span id="totalBalance" class="fw-bold text-primary small"></span>
+        </div>
+        <div id="envelopeList" class="row g-3"></div>
+      </div>
+
+      <!-- transactions (reference only) -->
+      <div id="transactionsSection" class="card shadow-sm p-3 mb-4 d-none">
+        <div class="d-flex justify-content-between align-items-center">
+          <h4 class="mb-0">Uploaded Transactions</h4>
+          <button id="toggleTxBtn" class="btn btn-sm btn-outline-secondary">Show/Hide</button>
+        </div>
+        <div id="transactionsTableWrapper" class="table-responsive mt-2 d-none"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Edit Envelope Modal -->
+  <div class="modal fade" id="envelopeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-info text-white">
+          <h5 class="modal-title">Edit Envelope</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input id="modalTitle" type="text" class="form-control mb-2" placeholder="Title"/>
+          <input id="modalBalance" type="number" step="0.01" class="form-control mb-2" placeholder="Balance"/>
+          <input id="modalTarget" type="number" step="0.01" class="form-control" placeholder="Target (optional)"/>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-success" id="saveModalBtn">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Envelope Modal -->
+  <div class="modal fade" id="deleteEnvelopeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title">Delete Envelope</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p id="deleteEnvelopeMessage"></p>
+          <p class="text-muted small">This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-danger" id="confirmDeleteEnvelopeBtn">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete User Modal -->
+  <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-warning">
+          <h5 class="modal-title">Delete User</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p id="deleteUserMessage"></p>
+          <p class="text-muted small">This will erase all envelopes for this user permanently.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn btn-danger" id="confirmDeleteUserBtn">Delete User</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Income Allocation Modal -->
+  <div class="modal fade" id="incomeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title">🎉 You got paid!</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <h6>Detected Income Transactions</h6>
+          <ul id="incomeList" class="list-group mb-3"></ul>
+
+          <h6>Allocate Income</h6>
+          <div id="allocationForm"></div>
+
+          <p class="fw-bold mt-3">
+            Remaining: <span id="remainingIncome" class="text-success">$0.00</span>
+          </p>
+          <small id="negativeWarning" class="text-danger d-none">⚠️ You are in the negative!</small>
+        </div>
+        <div class="modal-footer">
+          <button id="saveAllocationsBtn" class="btn btn-success">Save Allocations</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Expense Categorization Modal -->
+  <div class="modal fade" id="expenseModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title">Categorize Expense</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p id="expenseTxInfo" class="fw-bold"></p>
+          <div id="expenseEnvelopeButtons" class="d-flex flex-wrap gap-2"></div>
+        </div>
+        <div class="modal-footer">
+          <button id="skipExpenseBtn" class="btn btn-outline-secondary">Skip</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS bundle (required for modals), THEN your app logic -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
